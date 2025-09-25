@@ -1,7 +1,7 @@
 name: flutter_sewoo_usb_printer
 description: Flutter plugin for Sewoo USB POS printers using serial connection
 version: 0.0.1
-homepage: https://github.com/ultrathink/flutter_sewoo_usb_printer
+homepage: https://github.com/1kl1/flutter_sewoo_usb_printer
 
 environment:
   sdk: ">=2.12.0 <4.0.0"
