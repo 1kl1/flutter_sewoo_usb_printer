@@ -1,82 +1,66 @@
-# Flutter Sewoo USB Printer Plugin
+# flutter_sewoo_usb_printer
 
-A Flutter plugin for Sewoo POS printers using USB/Serial connection. This plugin provides a comprehensive wrapper around the Sewoo_Android_1114.jar library, focusing exclusively on USB connectivity without WiFi or Bluetooth support.
+A Flutter plugin for Sewoo POS printers using USB/Serial connection. This plugin provides a comprehensive wrapper around the Sewoo Android SDK 1.114 library for USB connectivity.
 
 ## Features
 
-- **USB Serial Connection Management**: Auto-detect and connect to USB serial ports
-- **Comprehensive Printing**: Text, barcodes, QR codes, images, and PDFs
-- **Real-time Status Monitoring**: ASB (Automatic Status Back) support
-- **Advanced Text Formatting**: Multiple fonts, sizes, and alignments
-- **ESC/POS Commands**: Full ESC/POS printer command support
-- **Multi-encoding Support**: UTF-8, EUC-KR, BIG5, GB2312, Shift_JIS
-- **Cash Drawer Control**: Open cash drawer command support
+- **USB Serial Connection**: Auto-detect and connect to USB serial ports
+- **Text Printing**: Multiple fonts, sizes, and alignments
+- **Barcode Support**: CODE39, CODE128, EAN8/13, UPC-A/E, ITF, CODABAR
+- **QR Code**: Configurable size and error correction levels
+- **Image & PDF Printing**: Direct printing from bytes or file paths
+- **Status Monitoring**: Real-time printer status via ASB mode
+- **ESC/POS Commands**: Full raw command support
+- **Multi-encoding**: UTF-8, EUC-KR, BIG5, GB2312, Shift_JIS
+- **Cash Drawer Control**: Open command support
 
 ## Installation
 
-### 1. Add Dependency
-
-Add this to your package's `pubspec.yaml` file:
+Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  flutter_sewoo_usb_printer: ^1.0.0
+  flutter_sewoo_usb_printer: ^0.0.1
 ```
 
-### 2. Android Configuration
+### Android Configuration
 
-Add the following permissions to your Android app's `AndroidManifest.xml`:
+Add permissions to `AndroidManifest.xml`:
 
 ```xml
 <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
 <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
 ```
 
-For Android 10+ (API 29+), add the following to the application tag:
+For Android 10+ (API 29+):
 
 ```xml
-<application
-    android:requestLegacyExternalStorage="true"
-    ...>
+<application android:requestLegacyExternalStorage="true">
 ```
 
-## Usage
-
-### Import the Plugin
+## Quick Start
 
 ```dart
 import 'package:flutter_sewoo_usb_printer/flutter_sewoo_usb_printer.dart';
-```
 
-### Get Available Ports
-
-```dart
+// Get available ports
 List<String> ports = await FlutterSewooUsbPrinter.getAvailablePorts();
-```
 
-### Connect to Printer
-
-```dart
+// Connect to printer
 bool connected = await FlutterSewooUsbPrinter.connect(
-  '/dev/ttyUSB0',  // Port name
-  baudRate: 9600,   // Baud rate (9600, 19200, 38400, 57600, 115200)
+  ports.first,
+  baudRate: 9600, // 9600, 19200, 38400, 57600, 115200
 );
-```
 
-### Print Text
-
-```dart
+// Print text
 await FlutterSewooUsbPrinter.printText(
   'Hello World',
   alignment: FlutterSewooUsbPrinter.ALIGN_CENTER,
   fontType: FlutterSewooUsbPrinter.FONT_BOLD,
   textSize: FlutterSewooUsbPrinter.TEXT_SIZE_2X,
 );
-```
 
-### Print Barcode
-
-```dart
+// Print barcode
 await FlutterSewooUsbPrinter.printBarcode(
   '1234567890',
   barcodeType: FlutterSewooUsbPrinter.BARCODE_CODE128,
@@ -85,57 +69,102 @@ await FlutterSewooUsbPrinter.printBarcode(
   alignment: FlutterSewooUsbPrinter.ALIGN_CENTER,
   hriPosition: FlutterSewooUsbPrinter.HRI_TEXT_BELOW,
 );
-```
 
-### Print QR Code
-
-```dart
+// Print QR code
 await FlutterSewooUsbPrinter.printQRCode(
   'https://example.com',
   moduleSize: 6,
   errorLevel: FlutterSewooUsbPrinter.QR_ERROR_LEVEL_M,
 );
+
+// Cut paper and disconnect
+await FlutterSewooUsbPrinter.cutPaper();
+await FlutterSewooUsbPrinter.disconnect();
 ```
 
-### Print Image
+## Core Methods
+
+### Connection Management
 
 ```dart
-// From bytes
-Uint8List imageData = // ... your image data
-await FlutterSewooUsbPrinter.printImage(imageData);
+// Get available USB serial ports
+List<String> ports = await FlutterSewooUsbPrinter.getAvailablePorts();
 
-// From file path
-await FlutterSewooUsbPrinter.printImageFile('/path/to/image.png');
+// Connect to printer
+bool connected = await FlutterSewooUsbPrinter.connect(portName, baudRate: 9600);
+
+// Check connection status
+bool isConnected = await FlutterSewooUsbPrinter.isConnected();
+
+// Get connection info
+Map<String, dynamic> info = await FlutterSewooUsbPrinter.getConnectionInfo();
+
+// Disconnect
+await FlutterSewooUsbPrinter.disconnect();
 ```
 
-### Print PDF
+### Text Printing
 
 ```dart
-await FlutterSewooUsbPrinter.printPDF(
-  '/path/to/document.pdf',
-  pageNumber: 0,  // 0-based page index
+// Print formatted text
+await FlutterSewooUsbPrinter.printText(
+  text,
+  alignment: FlutterSewooUsbPrinter.ALIGN_CENTER,    // LEFT, CENTER, RIGHT
+  fontType: FlutterSewooUsbPrinter.FONT_BOLD,       // DEFAULT, BOLD, UNDERLINE, REVERSE
+  textSize: FlutterSewooUsbPrinter.TEXT_SIZE_2X,    // 1X, 2X, 3X, 4X
+);
+
+// Print raw string
+await FlutterSewooUsbPrinter.printString('Simple text\n');
+
+// Print with Android fonts
+await FlutterSewooUsbPrinter.printAndroidFont(
+  text,
+  fontFamily: 'monospace',
+  fontSize: 24,
+  alignment: FlutterSewooUsbPrinter.ALIGN_LEFT,
 );
 ```
 
-### Status Monitoring
+### Barcode & QR Code
 
 ```dart
-// Check status once
-PrinterStatus status = await FlutterSewooUsbPrinter.checkPrinterStatus();
-if (status.isPaperEmpty) {
-  print('Paper is empty!');
-}
+// Print barcode
+await FlutterSewooUsbPrinter.printBarcode(
+  data,
+  barcodeType: FlutterSewooUsbPrinter.BARCODE_CODE128,
+  height: 100,
+  width: 2,
+  alignment: FlutterSewooUsbPrinter.ALIGN_CENTER,
+  hriPosition: FlutterSewooUsbPrinter.HRI_TEXT_BELOW,
+);
 
-// Enable ASB mode for real-time monitoring
-await FlutterSewooUsbPrinter.enableASBMode(true);
-
-// Listen to status updates
-FlutterSewooUsbPrinter.getStatusStream().listen((status) {
-  print('Status: $status');
-});
+// Print QR code
+await FlutterSewooUsbPrinter.printQRCode(
+  data,
+  moduleSize: 6,  // 1-16
+  errorLevel: FlutterSewooUsbPrinter.QR_ERROR_LEVEL_M,  // L, M, Q, H
+);
 ```
 
-### Other Operations
+### Image & PDF Printing
+
+```dart
+// Print image from bytes
+Uint8List imageData = // ... your image data
+await FlutterSewooUsbPrinter.printImage(imageData);
+
+// Print image from file
+await FlutterSewooUsbPrinter.printImageFile('/path/to/image.png');
+
+// Print PDF page
+await FlutterSewooUsbPrinter.printPDF(
+  '/path/to/document.pdf',
+  pageNumber: 0,  // 0-based index
+);
+```
+
+### Printer Control
 
 ```dart
 // Line feed
@@ -150,126 +179,83 @@ await FlutterSewooUsbPrinter.openCashDrawer();
 // Reset printer
 await FlutterSewooUsbPrinter.reset();
 
-// Disconnect
-await FlutterSewooUsbPrinter.disconnect();
+// Send raw ESC/POS commands
+await FlutterSewooUsbPrinter.sendRawData(Uint8List.fromList([0x1B, 0x40]));
 ```
 
-## API Reference
+### Status Monitoring
 
-### Connection Methods
+```dart
+// Check status once
+PrinterStatus status = await FlutterSewooUsbPrinter.checkPrinterStatus();
+if (status.isPaperEmpty) {
+  print('Paper is empty!');
+}
 
-| Method | Description |
-|--------|-------------|
-| `getAvailablePorts()` | Returns list of available USB serial ports |
-| `connect(portName, baudRate)` | Connect to printer on specified port |
-| `disconnect()` | Disconnect from printer |
-| `isConnected()` | Check if printer is connected |
-| `getConnectionInfo()` | Get current connection details |
+// Enable real-time monitoring
+await FlutterSewooUsbPrinter.enableASBMode(true);
 
-### Print Methods
-
-| Method | Description |
-|--------|-------------|
-| `printText(text, alignment, fontType, textSize)` | Print formatted text |
-| `printString(text)` | Print raw text string |
-| `printBarcode(data, type, height, width, alignment, hri)` | Print barcode |
-| `printQRCode(data, moduleSize, errorLevel)` | Print QR code |
-| `printImage(imageData)` | Print image from bytes |
-| `printImageFile(path)` | Print image from file |
-| `printPDF(path, pageNumber)` | Print PDF page |
-| `printAndroidFont(text, fontFamily, fontSize, alignment)` | Print with Android fonts |
-
-### Control Methods
-
-| Method | Description |
-|--------|-------------|
-| `lineFeed(lines)` | Feed paper by specified lines |
-| `cutPaper()` | Cut paper |
-| `openCashDrawer()` | Open cash drawer |
-| `reset()` | Reset printer to default state |
-| `sendRawData(data)` | Send raw ESC/POS commands |
-
-### Status Methods
-
-| Method | Description |
-|--------|-------------|
-| `checkPrinterStatus()` | Get current printer status |
-| `enableASBMode(enable)` | Enable/disable automatic status monitoring |
-| `getStatusStream()` | Get stream of status updates |
-
-### Constants
-
-#### Alignment
-- `ALIGN_LEFT` - Left alignment
-- `ALIGN_CENTER` - Center alignment  
-- `ALIGN_RIGHT` - Right alignment
-
-#### Font Types
-- `FONT_DEFAULT` - Normal font
-- `FONT_BOLD` - Bold font
-- `FONT_UNDERLINE` - Underlined text
-- `FONT_REVERSE` - Reverse video (white on black)
-
-#### Text Sizes
-- `TEXT_SIZE_1X` - Normal size
-- `TEXT_SIZE_2X` - Double size
-- `TEXT_SIZE_3X` - Triple size
-- `TEXT_SIZE_4X` - Quadruple size
-
-#### Barcode Types
-- `BARCODE_CODE39`
-- `BARCODE_CODE128`
-- `BARCODE_EAN8`
-- `BARCODE_EAN13`
-- `BARCODE_UPC_A`
-- `BARCODE_UPC_E`
-- `BARCODE_ITF`
-- `BARCODE_CODABAR`
-
-#### HRI Positions
-- `HRI_TEXT_NONE` - No human readable text
-- `HRI_TEXT_ABOVE` - Text above barcode
-- `HRI_TEXT_BELOW` - Text below barcode
-- `HRI_TEXT_BOTH` - Text both above and below
-
-#### QR Error Levels
-- `QR_ERROR_LEVEL_L` - Low (7% correction)
-- `QR_ERROR_LEVEL_M` - Medium (15% correction)
-- `QR_ERROR_LEVEL_Q` - Quartile (25% correction)
-- `QR_ERROR_LEVEL_H` - High (30% correction)
+// Listen to status updates
+FlutterSewooUsbPrinter.getStatusStream().listen((status) {
+  if (status.isError) {
+    print('Error: ${status.errorMessage}');
+  }
+});
+```
 
 ## PrinterStatus Object
 
 ```dart
 class PrinterStatus {
   final int statusCode;        // Raw status code
-  final bool isNormal;         // Printer is ready
-  final bool isPaperEmpty;     // Paper empty
-  final bool isPaperNearEnd;   // Paper near end
-  final bool isCoverOpen;      // Cover is open
-  final bool isError;          // Printer error
-  final bool isCashDrawerOpen; // Cash drawer open
-  final String? errorMessage;  // Error description
+  final bool isNormal;         // Printer ready
+  final bool isPaperEmpty;     // No paper
+  final bool isPaperNearEnd;   // Low paper
+  final bool isCoverOpen;      // Cover open
+  final bool isError;          // Error state
+  final bool isCashDrawerOpen; // Drawer open
+  final String? errorMessage;  // Error details
 }
 ```
 
-## Supported Encodings
+## Constants Reference
 
-- UTF-8 (default)
-- EUC-KR (Korean)
-- BIG5 (Traditional Chinese)
-- GB2312 (Simplified Chinese)
-- Shift_JIS (Japanese)
+### Alignment
+- `ALIGN_LEFT` - Left alignment
+- `ALIGN_CENTER` - Center alignment
+- `ALIGN_RIGHT` - Right alignment
 
-Set encoding using:
+### Font Types
+- `FONT_DEFAULT` - Normal font
+- `FONT_BOLD` - Bold font
+- `FONT_UNDERLINE` - Underlined text
+- `FONT_REVERSE` - Reverse video
 
-```dart
-await FlutterSewooUsbPrinter.setEncoding('EUC-KR');
-```
+### Text Sizes
+- `TEXT_SIZE_1X` - Normal size
+- `TEXT_SIZE_2X` - Double size
+- `TEXT_SIZE_3X` - Triple size
+- `TEXT_SIZE_4X` - Quadruple size
+
+### Barcode Types
+- `BARCODE_CODE39`, `BARCODE_CODE128`
+- `BARCODE_EAN8`, `BARCODE_EAN13`
+- `BARCODE_UPC_A`, `BARCODE_UPC_E`
+- `BARCODE_ITF`, `BARCODE_CODABAR`
+
+### HRI Positions
+- `HRI_TEXT_NONE` - No text
+- `HRI_TEXT_ABOVE` - Above barcode
+- `HRI_TEXT_BELOW` - Below barcode
+- `HRI_TEXT_BOTH` - Both positions
+
+### QR Error Levels
+- `QR_ERROR_LEVEL_L` - Low (7%)
+- `QR_ERROR_LEVEL_M` - Medium (15%)
+- `QR_ERROR_LEVEL_Q` - Quartile (25%)
+- `QR_ERROR_LEVEL_H` - High (30%)
 
 ## Error Handling
-
-All methods throw `FlutterSewooException` on error:
 
 ```dart
 try {
@@ -281,74 +267,84 @@ try {
 }
 ```
 
+## Supported Encodings
+
+```dart
+// Set encoding for text printing
+await FlutterSewooUsbPrinter.setEncoding('EUC-KR');
+```
+
+Available encodings:
+- UTF-8 (default)
+- EUC-KR (Korean)
+- BIG5 (Traditional Chinese)
+- GB2312 (Simplified Chinese)
+- Shift_JIS (Japanese)
+
 ## Example App
 
-See the `example` folder for a complete sample application demonstrating all features:
+Complete example available in the `example` folder:
 
 ```bash
 cd example
 flutter run
 ```
 
-## Troubleshooting
-
-### No Ports Detected
-
-- Ensure USB cable is properly connected
-- Check if USB debugging is enabled on the device
-- Verify the printer is powered on
-- Try different USB ports or cables
-
-### Connection Failed
-
-- Verify the correct baud rate (usually 9600 or 115200)
-- Ensure no other app is using the port
-- Check if the port name is correct
-- Try disconnecting and reconnecting the USB cable
-
-### Print Quality Issues
-
-- Check printer paper quality
-- Verify the printer head is clean
-- Adjust print density settings if available
-- Ensure proper power supply to printer
-
-### ASB Mode Not Working
-
-- Not all printer models support ASB
-- Ensure printer firmware is up to date
-- Check serial connection quality
-- Try lower baud rates for stability
-
 ## Platform Support
 
-- Android: ✅ Supported (Min SDK 21)
-- iOS: ❌ Not supported (USB serial not available)
-- Web: ❌ Not supported
-- Windows: ❌ Not supported
-- macOS: ❌ Not supported
-- Linux: ❌ Not supported
+| Platform | Support |
+|----------|---------|
+| Android  | ✅ (Min SDK 21) |
+| iOS      | ❌ |
+| Web      | ❌ |
+| Windows  | ❌ |
+| macOS    | ❌ |
+| Linux    | ❌ |
 
 ## Requirements
 
 - Android device with USB OTG support
-- USB to Serial adapter (if printer doesn't have direct USB)
+- USB to Serial adapter (if needed)
 - Sewoo POS printer compatible with SDK 1.114
-- Flutter 2.5.0 or higher
-- Dart 2.12.0 or higher
+- Flutter 2.5.0+
+- Dart 2.12.0+
+
+## Troubleshooting
+
+### No Ports Detected
+- Ensure USB cable is properly connected
+- Check USB debugging is enabled
+- Verify printer is powered on
+- Try different USB ports/cables
+
+### Connection Failed
+- Verify correct baud rate (usually 9600 or 115200)
+- Ensure no other app is using the port
+- Check port name is correct
+- Try reconnecting USB cable
+
+### Print Quality Issues
+- Check paper quality
+- Clean printer head
+- Ensure proper power supply
+
+### ASB Mode Not Working
+- Not all models support ASB
+- Update printer firmware
+- Try lower baud rates
 
 ## License
 
-MIT License - See LICENSE file for details
+MIT License - see LICENSE file
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions welcome! Please submit a Pull Request.
 
 ## Support
 
-For issues, questions, or suggestions, please file an issue on the GitHub repository.
+For issues or questions, please file an issue on [GitHub](https://github.com/1kl1/flutter_sewoo_usb_printer).
 
 ## Acknowledgments
 
-This plugin is based on the Sewoo Android SDK 1.114 and provides Flutter bindings for USB serial communication with Sewoo POS printers.
+Based on Sewoo Android SDK 1.114.
