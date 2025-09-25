@@ -1,0 +1,26 @@
+name: flutter_sewoo_usb_printer_example
+description: Demonstrates how to use the flutter_sewoo_usb_printer plugin.
+publish_to: 'none'
+version: 1.0.0
+
+environment:
+  sdk: ">=2.12.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  flutter_sewoo_usb_printer:
+    path: ../
+
+  cupertino_icons: ^1.0.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/
